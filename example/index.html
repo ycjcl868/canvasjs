@@ -26,7 +26,7 @@
 				name: 'Base',
 				type: 'splineArea',
 				markerType: 'none',
-				color: 'rgba(0,0,0,.7)',
+				color: 'rgba(0,0,0,.7);rgba(0,0,0,.3);red',
 				dataPoints: [{
 					x: 10,
 					y: 20
@@ -54,7 +54,7 @@
 				name: 'Base',
 				type: 'splineArea',
 				markerType: 'none',
-				color: 'rgba(0,0,0,.7);rgba(255,0,0,.5)',
+				color: 'rgba(255,255,255,.9);rgba(0,0,0,.5);rgb(255,255,255)',
 				dataPoints: data
 			}]
 		});
@@ -62,13 +62,13 @@
 		var last;
 		setInterval(function(){
 
-			last = last || Math.random() * 5 + 5,
+			last = last || Math.random() * 2 + 5,
 			data.push({
-				y: last + Math.random() * 5 + 5,
+				y: last + Math.random() * 0.5,
 				x: new Date()
 			});
 
-			data.length > 500 && data.shift();
+			data.length > 100 && data.shift();
 
 			c2.render();
 		}, 100);
