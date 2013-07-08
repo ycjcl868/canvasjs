@@ -1,0 +1,26 @@
+{
+	"browser": true,
+	"esnext": false,
+	"evil": false,
+	"bitwise": false,
+	"curly": false,
+	"eqeqeq": false,
+	"eqnull": true,
+	"immed": true,
+	"latedef": true,
+	"newcap": true,
+	"noarg": true,
+	"undef": true,
+	"unused": true,
+	"strict": true,
+	"sub": true,
+	"trailing": false,
+	"smarttabs": true,
+	"boss": true,
+	"expr": true,
+	"globalstrict": false,
+	"globals": {
+		"define": false,
+		"console": false
+	}
+}

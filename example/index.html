@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<div id='one'></div>
+<script src="../old/canvasjs.js"></script>
+<!--<script src="../canvasjs.min.js"></script>-->
+<script>
+	(function(){
+		var vars = [];
+		var c = new CanvasJS.Chart('one', {
+			data: [{
+				name: 'Base',
+				type: 'splineArea',
+				markerType: 'none',
+				color: 'rgba(0,0,0,.7)',
+				dataPoints: [{
+					x: 10,
+					y: 20
+				}, {
+					x: 40,
+					y: 25
+				}]
+			}]
+		});
+
+		c.render();
+
+		function getGlobals(){
+			var ignore = ['window','document','InstallTrigger','console','CanvasJS','navigator','getInterface','external','sidebar','top','location']
+
+			for (var key in this){
+				if (this.hasOwnProperty(key) && ignore.indexOf(key) === -1){
+					vars.push(key);
+				}
+			}
+			return vars;
+		}
+
+		var globals = getGlobals();
+
+		console.log(globals, globals.length);
+
+	}).call(this);
+</script>
+</body>
+</html>
