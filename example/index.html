@@ -1,10 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title></title>
+	<title>basic example</title>
+	<style>
+		.chrt {
+			width: 400px;
+			height: 200px;
+			float: left;
+			margin: 8px;
+			box-shadow: 3px 3px 5px rgba(0,0,0, .5);
+		}
+	</style>
 </head>
+
 <body>
-<div id='one'></div>
+<div id='one' class="chrt"></div>
+<div id='two' class="chrt"></div>
 <!--<script src="../old/canvasjs.js"></script>-->
 <script src="../canvasjs.js"></script>
 <script>
@@ -22,11 +33,47 @@
 				}, {
 					x: 40,
 					y: 25
+				},{
+					x: 80,
+					y: 15
 				}]
 			}]
 		});
 
 		c.render();
+
+		var data = [];
+
+		var c2 = new CanvasJS.Chart('two', {
+			theme: 'theme3',
+			backgroundColor: 'rgb(15,22,25)',
+			axisY: {
+				includeZero: false
+			},
+			data: [{
+				name: 'Base',
+				type: 'line',
+				markerType: 'none',
+//				color: 'rgba(0,0,0,.7)',
+				dataPoints: data,
+
+			}]
+		});
+
+		var last;
+		setInterval(function(){
+
+			last = last || Math.random() * 5 + 5,
+			data.push({
+				y: last + Math.random() * 5 + 5,
+				x: new Date()
+			});
+
+			data.length > 500 && data.shift();
+
+			c2.render();
+		}, 100);
+
 
 		function getGlobals(){
 			var ignore = ['window','document','InstallTrigger','console','CanvasJS','navigator','getInterface','external','sidebar','top','location']
