@@ -20,29 +20,19 @@
 <script src="../canvasjs.js"></script>
 <script>
 	(function(){
-		var vars = [];
+
+		var data = [];
+
 		var c = new CanvasJS.Chart('one', {
 			data: [{
 				name: 'Base',
 				type: 'splineArea',
 				markerType: 'none',
 				color: 'rgba(0,0,0,.7);rgba(0,0,0,.3);red',
-				dataPoints: [{
-					x: 10,
-					y: 20
-				}, {
-					x: 40,
-					y: 25
-				},{
-					x: 80,
-					y: 15
-				}]
+				dataPoints: data
 			}]
 		});
 
-		c.render();
-
-		var data = [];
 
 		var c2 = new CanvasJS.Chart('two', {
 			theme: 'theme3',
@@ -71,10 +61,13 @@
 			data.length > 100 && data.shift();
 
 			c2.render();
+			c.render();
 		}, 100);
 
 
 		function getGlobals(){
+			var vars = [];
+
 			var ignore = ['window','document','InstallTrigger','console','CanvasJS','navigator','getInterface','external','sidebar','top','location']
 
 			for (var key in this){
