@@ -21,3 +21,16 @@ Additionally, a `.jshintrc` that passes has been added with reasonable directive
 In spite of all the fixes, the lack of functional tests I have means I cannot guarantee this version has not broken functionality I was not aware of or chart types I have not personally used. It seems to work fine with line/sline/area chart and the likes, which is what I needed.
 
 I am *NOT* going to be supporting this so use at your own risk. It does seem very fast for the actual rendering.
+
+## Building
+
+Simple minification via uglify-js2 npm module.
+
+```sh
+$ npm install
+...
+$ npm run-script min
+
+> canvasjs@1.2.2 min /Users/dchristoff/projects/canvasjs
+> node_modules/uglify-js2/bin/uglifyjs2 canvasjs.js -c -m -o canvasjs.min.js
+```
