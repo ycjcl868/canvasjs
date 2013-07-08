@@ -1473,7 +1473,7 @@
 						dataSeries._colorSet = this._selectedColorSet;
 				}
 			} else {
-				dataSeries._colorSet = [dataSeries.color];
+				dataSeries._colorSet = dataSeries.color.split(";");
 			}
 
 			if (dataSeries.markerSize === null){
@@ -4369,6 +4369,10 @@
 		ghostCtx.rect(plotArea.x1, plotArea.y1, plotArea.width, plotArea.height);
 		ghostCtx.clip();
 
+		var ctx = this.ctx;
+
+		var color;
+
 		for (var j = 0; j < plotUnit.dataSeriesIndexes.length; j++){
 
 			var dataSeriesIndex = plotUnit.dataSeriesIndexes[j];
@@ -4398,11 +4402,26 @@
 
 			var pixels = [];
 
+			var useStroke = false;
+
 			if (dataPoints.length > 0){
-				//this.ctx.strokeStyle = "#4572A7 ";
-				var color = dataSeries._colorSet[i % dataSeries._colorSet.length];
-				//this.ctx.strokeStyle = "red";
-				this.ctx.fillStyle = color;
+				// this.ctx.strokeStyle = "#4572A7 ";
+				if (dataSeries._colorSet.length > 1){
+					color = ctx.createLinearGradient(0,0,0,plotArea.height);
+					color.addColorStop(0, dataSeries._colorSet[0]);
+					color.addColorStop(1, dataSeries._colorSet[1]);
+				}
+				else {
+					color = dataSeries._colorSet[0];
+				}
+
+				if (dataSeries._colorSet[2]){
+					useStroke = true;
+					ctx.strokeStyle = dataSeries._colorSet[2];
+					ctx.lineWidth = 1;
+				}
+
+				ctx.fillStyle = color;
 
 				for (; i < dataPoints.length; i++){
 
@@ -4418,49 +4437,51 @@
 					if (typeof (dataPoints[i].y) !== "number")
 						continue;
 
-					//if (isFirstDataPointInPlotArea) {
-					//    this.ctx.beginPath();
-					//    this.ctx.moveTo(x, y);
-					//    startPoint = { x: x, y: y };
+					/*
+					 if (isFirstDataPointInPlotArea) {
+					 this.ctx.beginPath();
+					 this.ctx.moveTo(x, y);
+					 startPoint = { x: x, y: y };
 
-					//    ghostCtx.beginPath();
-					//    ghostCtx.moveTo(x, y);
+					 ghostCtx.beginPath();
+					 ghostCtx.moveTo(x, y);
 
-					//    isFirstDataPointInPlotArea = false;
-					//}
-					//else {
+					 isFirstDataPointInPlotArea = false;
+					 }
+					 else {
 
-					//    this.ctx.lineTo(x, y);
-					//    ghostCtx.lineTo(x, y);
+					 this.ctx.lineTo(x, y);
+					 ghostCtx.lineTo(x, y);
 
-					//    if (i % 250 == 0) {
+					 if (i % 250 == 0) {
 
-					//        if (plotUnit.axisY.minimum <= 0 && plotUnit.axisY.maximum >= 0) {
-					//            baseY = yZeroToPixel;
-					//        }
-					//        else if (plotUnit.axisY.maximum < 0)
-					//            baseY = axisYProps.y1;
-					//        else if (plotUnit.axisY.minimum > 0)
-					//            baseY = axisXProps.y2;
+					 if (plotUnit.axisY.minimum <= 0 && plotUnit.axisY.maximum >= 0) {
+					 baseY = yZeroToPixel;
+					 }
+					 else if (plotUnit.axisY.maximum < 0)
+					 baseY = axisYProps.y1;
+					 else if (plotUnit.axisY.minimum > 0)
+					 baseY = axisXProps.y2;
 
-					//        this.ctx.lineTo(x, baseY);
-					//        this.ctx.lineTo(startPoint.x, baseY);
-					//        this.ctx.closePath();
-					//        this.ctx.fill();
-					//        this.ctx.beginPath();
-					//        this.ctx.moveTo(x, y);
+					 this.ctx.lineTo(x, baseY);
+					 this.ctx.lineTo(startPoint.x, baseY);
+					 this.ctx.closePath();
+					 this.ctx.fill();
+					 this.ctx.beginPath();
+					 this.ctx.moveTo(x, y);
 
 
-					//        ghostCtx.lineTo(x, baseY);
-					//        ghostCtx.lineTo(startPoint.x, baseY);
-					//        ghostCtx.closePath();
-					//        ghostCtx.fill();
-					//        ghostCtx.beginPath();
-					//        ghostCtx.moveTo(x, y);
+					 ghostCtx.lineTo(x, baseY);
+					 ghostCtx.lineTo(startPoint.x, baseY);
+					 ghostCtx.closePath();
+					 ghostCtx.fill();
+					 ghostCtx.beginPath();
+					 ghostCtx.moveTo(x, y);
 
-					//        startPoint = { x: x, y: y };
-					//    }
-					//}
+					 startPoint = { x: x, y: y };
+					 }
+					 }
+					 */
 
 
 					var id = dataSeries.dataPointIds[i];
@@ -4506,15 +4527,15 @@
 				var bp = getBezierPoints(pixels, 2);
 
 				if (bp.length > 0){
-					this.ctx.beginPath();
+					ctx.beginPath();
 					ghostCtx.beginPath();
 
-					this.ctx.moveTo(bp[0].x, bp[0].y);
+					ctx.moveTo(bp[0].x, bp[0].y);
 					ghostCtx.moveTo(bp[0].x, bp[0].y);
 
 					for (i = 0; i < bp.length - 3; i += 3){
 
-						this.ctx.bezierCurveTo(bp[i + 1].x, bp[i + 1].y, bp[i + 2].x, bp[i + 2].y, bp[i + 3].x, bp[i + 3].y);
+						ctx.bezierCurveTo(bp[i + 1].x, bp[i + 1].y, bp[i + 2].x, bp[i + 2].y, bp[i + 3].x, bp[i + 3].y);
 						ghostCtx.bezierCurveTo(bp[i + 1].x, bp[i + 1].y, bp[i + 2].x, bp[i + 2].y, bp[i + 3].x, bp[i + 3].y);
 
 
@@ -4530,6 +4551,8 @@
 						//}
 					}
 
+					useStroke && ctx.stroke();
+
 					if (plotUnit.axisY.minimum <= 0 && plotUnit.axisY.maximum >= 0){
 						baseY = yZeroToPixel;
 					}
@@ -4540,10 +4563,11 @@
 
 					startPoint = { x: bp[0].x, y: bp[0].y };
 
-					this.ctx.lineTo(bp[bp.length - 1].x, baseY);
-					this.ctx.lineTo(startPoint.x, baseY);
-					this.ctx.closePath();
-					this.ctx.fill();
+					ctx.lineTo(bp[bp.length - 1].x, baseY);
+
+					ctx.lineTo(startPoint.x, baseY);
+					ctx.closePath();
+					ctx.fill();
 
 					ghostCtx.lineTo(bp[bp.length - 1].x, baseY);
 					ghostCtx.lineTo(startPoint.x, baseY);
@@ -5538,7 +5562,7 @@
 				}
 
 
-				// loop from 1st to last quadrent 
+				// loop from 1st to last quadrent
 
 				for (i = 0; i < noDataPoints; i++){
 					if (labelLocationAngles[i] < Math.PI / 2){
@@ -5572,7 +5596,7 @@
 					}
 				}
 
-				// loop from last to first quadrent 
+				// loop from last to first quadrent
 				for (i = noDataPoints; i >= 0; i--){
 					if (labelLocationAngles[i] < Math.PI && labelLocationAngles[i] >= Math.PI / 2){
 						if (y1[i] < y2[i + 1]){
@@ -6723,7 +6747,7 @@
 		}
 	};
 
-	//Finds dataPoint with the given x value. If findClosest is set, finds dataPoint with closest x value. 
+	//Finds dataPoint with the given x value. If findClosest is set, finds dataPoint with closest x value.
 	//Returns searchResult object if found, else returns null
 	DataSeries.prototype.findDataPointByX = function(x, findClosest){
 
@@ -6853,14 +6877,14 @@
 
 		this.lineCoordinates = { x1: null, y1: null, x2: null, y2: null, width: null };//{x1:, y1:, x2:, y2:, width:}
 		//
-			this.labelAngle = ((this.labelAngle % 360) + 360) % 360;
+		this.labelAngle = ((this.labelAngle % 360) + 360) % 360;
 
-			if (this.labelAngle > 90 && this.labelAngle <= 270)
-				this.labelAngle -= 180;
-			else if (this.labelAngle > 180 && this.labelAngle <= 270)
-				this.labelAngle -= 180;
-			else if (this.labelAngle > 270 && this.labelAngle <= 360)
-				this.labelAngle -= 360;
+		if (this.labelAngle > 90 && this.labelAngle <= 270)
+			this.labelAngle -= 180;
+		else if (this.labelAngle > 180 && this.labelAngle <= 270)
+			this.labelAngle -= 180;
+		else if (this.labelAngle > 270 && this.labelAngle <= 360)
+			this.labelAngle -= 360;
 
 		this._titleTextBlock = null;
 		this._absoluteMinimum = null;// Used to determine boundaries while Zooming/Panning
