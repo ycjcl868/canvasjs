@@ -34,6 +34,8 @@ Checkout branch `split-gradient` - which actually changes the following:
  - constructor also now accepts an element instead of an id
  - small bug fixes and demos.
 
+Demo of this: [here](http://fragged.org/dev/canvasjs/example/index-new.html)
+
 ## Building
 
 Simple minification via uglify-js2 npm module.
