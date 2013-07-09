@@ -25,6 +25,15 @@ In spite of all the fixes, the lack of functional tests I have means I cannot gu
 
 I am *NOT* going to be supporting this so use at your own risk. It does seem very fast for the actual rendering.
 
+## Experimental fixes
+
+Checkout branch `split-gradient` - which actually changes the following:
+
+ - new charts need to register themselves via `CanvasJS.registerChart`
+ - ported to external files: `area, line, spline, stackedArea`
+ - constructor also now accepts an element instead of an id
+ - small bug fixes and demos.
+
 ## Building
 
 Simple minification via uglify-js2 npm module.
