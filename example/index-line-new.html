@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>basic example</title>
+	<style>
+		.chrt {
+			width: 400px;
+			height: 200px;
+			float: left;
+			margin: 8px;
+			box-shadow: 3px 3px 5px rgba(0,0,0, .5);
+		}
+	</style>
+</head>
+
+<body>
+<div class="chrt" data-type="line"></div>
+<div class="chrt" data-type="splineArea"></div>
+<!--<script src="../old/canvasjs.js"></script>-->
+<!--<script src="../canvasjs.js"></script>-->
+<script src="../lib/require.js" type="text/javascript"></script>
+<script>
+	require(['../charts/plot-line', '../charts/spline-area'], function(CanvasJS){
+
+		var data = [{
+			x: 10,
+			y: 20
+		}, {
+			x: 40,
+			y: 25
+		}];
+
+		var charts = document.querySelectorAll('div.chrt');
+		Array.forEach(charts, function(el, i){
+			console.log(el);
+			var c = new CanvasJS.Chart(el, {
+				data: [{
+					name: 'Base',
+					type: el.getAttribute('data-type') || 'line',
+					markerType: 'none',
+					color: 'rgba(0,0,0,.9)',
+					dataPoints: data
+				}]
+			});
+
+			c.render();
+		});
+
+
+	});
+</script>
+</body>
+</html>
