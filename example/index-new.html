@@ -52,7 +52,7 @@
 				name: 'Base',
 				type: el.getAttribute('data-type') || 'line',
 				markerType: 'none',
-				dataPoints: data
+				dataPoints: data,
 			};
 
 			var color = el.getAttribute('data-color');
@@ -60,6 +60,9 @@
 
 			var c = new CanvasJS.Chart(el, {
 				theme: el.getAttribute('data-theme') || 'theme1',
+				title: {
+					text: obj.type
+				},
 				data: [obj]
 			}).render();
 

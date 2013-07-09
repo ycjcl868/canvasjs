@@ -1056,27 +1056,30 @@
 	}
 
 	CanvasJSObject.prototype.setOptions = function(options, currentTheme){
+		var prop, defaults;
 
 		if (!defaultOptions[this._defaultsKey]){
-			if (isDebugMode && window.console)
-				console.log("defaults not set");
+			isDebugMode && window.console && console.log("defaults not set");
 		}
 		else {
-			var defaults = defaultOptions[this._defaultsKey];
+			defaults = defaultOptions[this._defaultsKey];
 
-			for (var prop in defaults){
-				if (options && prop in options)
-					this[prop] = options[prop];
-				else if (currentTheme && prop in currentTheme)
-					this[prop] = currentTheme[prop];
-				else this[prop] = defaults[prop];
-
-				//if (typeof this[prop] === "function") {
-				//    alert("function");
-				//    this[prop] = this[prop]();
-				//}
+			for (prop in defaults){
+				if (defaults.hasOwnProperty(prop)){
+					if (options && prop in options)
+						this[prop] = options[prop];
+					else if (currentTheme && prop in currentTheme)
+						this[prop] = currentTheme[prop];
+					else this[prop] = defaults[prop];
+					//if (typeof this[prop] === "function") {
+					//    alert("function");
+					//    this[prop] = this[prop]();
+					//}
+				}
 			}
 		}
+
+		return this;
 	};
 
 	//Stores values in _oldOptions so that it can be tracked for any changes
@@ -1930,7 +1933,7 @@
 		var plotAreaXMin;
 		var plotAreaXMax;
 
-		var j, i
+		var j, i;
 
 		for (j = 0; j < plotUnit.dataSeriesIndexes.length; j++){
 			var dataSeries = this.data[plotUnit.dataSeriesIndexes[j]];
@@ -2016,7 +2019,7 @@
 						dataPointYNegativeSums[dataPointX] = dataPointY;
 				}
 			}
-			
+
 			this.plotInfo.axisXValueType = dataSeries.xValueType = isDateTime ? "dateTime" : "number";
 		}
 
