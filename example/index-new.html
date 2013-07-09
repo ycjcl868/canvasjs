@@ -29,24 +29,11 @@
 		'../charts/stacked-area',
 	], function(CanvasJS){
 
-		var data = [{
-			x: 10,
-			y: 20
-		}, {
-			x: 40,
-			y: 25
-		}, {
-			x: 80,
-			y: 18
-		}, {
-			x: 94,
-			y: 10
-		}, {
-			x: 110,
-			y: 58
-		}];
+		var data = [];
 
-		var charts = document.querySelectorAll('div.chrt');
+		var charts = document.querySelectorAll('div.chrt'),
+			instances = [];
+
 		Array.forEach(charts, function(el, i){
 			var obj = {
 				name: 'Base',
@@ -64,10 +51,26 @@
 					text: obj.type
 				},
 				data: [obj]
-			}).render();
+			});
 
+			instances.push(c);
 		});
 
+		var last;
+		setInterval(function(){
+
+			last = last || Math.random() * 2 + 5,
+				data.push({
+					y: last + Math.random() * 0.5,
+					x: new Date()
+				});
+
+			data.length > 100 && data.shift();
+
+			instances.forEach(function(c){
+				c.render();
+			})
+		}, 100);
 
 	});
 </script>
