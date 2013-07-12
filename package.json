@@ -1,6 +1,6 @@
 {
   "name": "canvasjs",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "CanvasJS - canvasjs.com",
   "main": "canvasjs.js",
   "directories": {
@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "min": "node_modules/uglify-js2/bin/uglifyjs2 canvasjs.js -c -m -o canvasjs.min.js"
+    "min": "node_modules/uglify-js2/bin/uglifyjs2 canvasjs.js charts/*.js -c -m -o canvasjs.min.js"
   },
   "repository": {
     "type": "git",

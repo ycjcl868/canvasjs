@@ -1,5 +1,5 @@
 ﻿/*
- * CanvasJS v1.2.2 - http://canvasjs.com/
+ * CanvasJS v1.2.3 - http://canvasjs.com/
  * Copyright 2013 fenopix
  * 
  * CanvasJS follows Dual Licensing Model as mentioned below. 
@@ -5998,7 +5998,7 @@
 		}
 	};
 
-	CanvasJS.Chart.version = "1.2.1";
+	CanvasJS.Chart.version = "1.2.3";
 
 	// wrap up
 	if (typeof define === 'function' && define.amd){
