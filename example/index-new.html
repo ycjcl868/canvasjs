@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>basic example</title>
+	<style>
+		.chrt {
+			width: 400px;
+			height: 200px;
+			float: left;
+			margin: 8px;
+			box-shadow: 3px 3px 5px rgba(0,0,0, .5);
+		}
+	</style>
+</head>
+
+<body>
+<div class="chrt" data-type="line" ></div>
+<div class="chrt" data-theme="theme3" data-type="splineArea" data-color="rgba(255,255,255,.9);rgba(0,0,0,.5);rgb(128,0,0)"></div>
+<div class="chrt" data-type="area"></div>
+<div class="chrt" data-type="stackedArea"></div>
+<!--<script src="../old/canvasjs.js"></script>-->
+<!--<script src="../canvasjs.js"></script>-->
+<script src="../lib/require.js" type="text/javascript"></script>
+<script>
+	require([
+		'../charts/plot-line',
+		'../charts/spline-area',
+		'../charts/area',
+		'../charts/stacked-area',
+	], function(CanvasJS){
+
+		var data = [];
+
+		var charts = document.querySelectorAll('div.chrt'),
+			instances = [];
+
+		Array.forEach(charts, function(el, i){
+			var obj = {
+				name: 'Base',
+				type: el.getAttribute('data-type') || 'line',
+				markerType: 'none',
+				dataPoints: data,
+			};
+
+			var color = el.getAttribute('data-color');
+			color && (obj.color = color);
+
+			var c = new CanvasJS.Chart(el, {
+				theme: el.getAttribute('data-theme') || 'theme1',
+				title: {
+					text: obj.type
+				},
+				data: [obj]
+			});
+
+			instances.push(c);
+		});
+
+		var last;
+		setInterval(function(){
+
+			last = last || Math.random() * 2 + 5,
+				data.push({
+					y: last + Math.random() * 0.5,
+					x: new Date()
+				});
+
+			data.length > 100 && data.shift();
+
+			instances.forEach(function(c){
+				c.render();
+			})
+		}, 100);
+
+	});
+</script>
+</body>
+</html>

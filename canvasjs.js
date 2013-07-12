@@ -1056,27 +1056,30 @@
 	}
 
 	CanvasJSObject.prototype.setOptions = function(options, currentTheme){
+		var prop, defaults;
 
 		if (!defaultOptions[this._defaultsKey]){
-			if (isDebugMode && window.console)
-				console.log("defaults not set");
+			isDebugMode && window.console && console.log("defaults not set");
 		}
 		else {
-			var defaults = defaultOptions[this._defaultsKey];
+			defaults = defaultOptions[this._defaultsKey];
 
-			for (var prop in defaults){
-				if (options && prop in options)
-					this[prop] = options[prop];
-				else if (currentTheme && prop in currentTheme)
-					this[prop] = currentTheme[prop];
-				else this[prop] = defaults[prop];
-
-				//if (typeof this[prop] === "function") {
-				//    alert("function");
-				//    this[prop] = this[prop]();
-				//}
+			for (prop in defaults){
+				if (defaults.hasOwnProperty(prop)){
+					if (options && prop in options)
+						this[prop] = options[prop];
+					else if (currentTheme && prop in currentTheme)
+						this[prop] = currentTheme[prop];
+					else this[prop] = defaults[prop];
+					//if (typeof this[prop] === "function") {
+					//    alert("function");
+					//    this[prop] = this[prop]();
+					//}
+				}
 			}
 		}
+
+		return this;
 	};
 
 	//Stores values in _oldOptions so that it can be tracked for any changes
@@ -1116,7 +1119,6 @@
 		var that = this;
 
 
-		this._containerId = containerId;
 		this._objectsInitialized = false;
 		this.ctx = null;
 		this.overlaidCanvasCtx = null;
@@ -1127,7 +1129,7 @@
 		this._defaultCursor = "default";
 		//this._maxZIndex = 0;
 
-		this._container = document.getElementById(this._containerId);
+		this._container = typeof containerId === 'object' && containerId ? containerId : document.getElementById(containerId);
 
 		if (!this._container)
 			return;
@@ -1454,7 +1456,7 @@
 
 			dataSeriesIndex++;
 
-			if (!(!this._options.data[series].type || Chart._supportedChartTypes.indexOf(this._options.data[series].type) >= 0))
+			if (!(!this._options.data[series].type || this._options.data[series].type in supportedChartTypes))
 				continue;
 
 			var dataSeries = new DataSeries(this, this._options.data[series], this.theme, dataSeriesIndex - 1, ++this._eventManager.lastObjectId);
@@ -1473,7 +1475,7 @@
 						dataSeries._colorSet = this._selectedColorSet;
 				}
 			} else {
-				dataSeries._colorSet = [dataSeries.color];
+				dataSeries._colorSet = dataSeries.color.split(";");
 			}
 
 			if (dataSeries.markerSize === null){
@@ -1547,11 +1549,14 @@
 		this._objectsInitialized = true;
 	};
 
-	Chart._supportedChartTypes = ["line", "stepLine", "spline", "column", "area", "splineArea", "bar", "bubble", "scatter",
+	/*"line", "stepLine", "spline", "column", "area", "splineArea", "bar", "bubble", "scatter",
 		"stackedColumn", "stackedColumn100", "stackedBar", "stackedBar100",
 		"stackedArea", "stackedArea100",
 		"pie", "doughnut"
-	];
+	*/
+
+	var supportedChartTypes = {};
+
 
 	Chart.prototype.render = function(){
 		//var dt = Date.now();
@@ -1627,40 +1632,12 @@
 
 				var plotUnit = plotType.plotUnits[j];
 
-				if (plotUnit.type === "line")
-					this.renderLine(plotUnit);
-				else if (plotUnit.type === "stepLine")
-					this.renderStepLine(plotUnit);
-				else if (plotUnit.type === "spline")
-					this.renderSpline(plotUnit);
-				else if (plotUnit.type === "column")
-					this.renderColumn(plotUnit);
-				else if (plotUnit.type === "bar")
-					this.renderBar(plotUnit);
-				else if (plotUnit.type === "area")
-					this.renderArea(plotUnit);
-				else if (plotUnit.type === "splineArea")
-					this.renderSplineArea(plotUnit);
-				else if (plotUnit.type === "stackedColumn")
-					this.renderStackedColumn(plotUnit);
-				else if (plotUnit.type === "stackedColumn100")
-					this.renderStackedColumn100(plotUnit);
-				else if (plotUnit.type === "stackedBar")
-					this.renderStackedBar(plotUnit);
-				else if (plotUnit.type === "stackedBar100")
-					this.renderStackedBar100(plotUnit);
-				else if (plotUnit.type === "stackedArea")
-					this.renderStackedArea(plotUnit);
-				else if (plotUnit.type === "stackedArea100")
-					this.renderStackedArea100(plotUnit);
-				else if (plotUnit.type === "bubble")
-					this.renderBubble(plotUnit);
-				else if (plotUnit.type === "scatter")
-					this.renderScatter(plotUnit);
-				else if (plotUnit.type === "pie")
-					this.renderPie(plotUnit);
-				else if (plotUnit.type === "doughnut")
-					this.renderPie(plotUnit);
+				if (supportedChartTypes[plotUnit.type] in this){
+					this[supportedChartTypes[plotUnit.type]].call(this, plotUnit);
+				}
+				else {
+					window.console.log('No known chart type for ' + plotUnit.type);
+				}
 			}
 		}
 
@@ -1732,7 +1709,7 @@
 			if (!dataSeries.dataPoints || dataSeries.dataPoints.length === 0)
 				continue;
 
-			if (Chart._supportedChartTypes.indexOf(dataSeries.type) >= 0){
+			if (dataSeries.type in supportedChartTypes){
 
 				var plotTypeExists = false;
 
@@ -1970,10 +1947,6 @@
 			}
 
 
-			if (dataSeries.dataPoints[i].x && dataSeries.dataPoints[i].x.getTime || dataSeries.xValueType === "dateTime"){
-				isDateTime = true;
-			}
-
 			for (i = 0; i < dataSeries.dataPoints.length; i++){
 
 				// Requird when no x values are provided 
@@ -1985,8 +1958,9 @@
 					isDateTime = true;
 					dataPointX = dataSeries.dataPoints[i].x.getTime();//dataPointX is used so that getTime is called only once in case of dateTime values
 				}
-				else
+				else {
 					dataPointX = dataSeries.dataPoints[i].x;
+				}
 
 				dataPointY = dataSeries.dataPoints[i].y;
 
@@ -2808,169 +2782,6 @@
 		}
 	};
 
-	Chart.prototype.renderLine = function(plotUnit){
-
-		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
-		if (totalDataSeries <= 0)
-			return;
-
-		var ghostCtx = this._eventManager.ghostCtx;
-		//var ghostCtx = this.overlaidCanvasCtx;
-
-		this.ctx.save();
-
-		var plotArea = this.getPlotArea();
-
-		this.ctx.beginPath();
-		this.ctx.rect(plotArea.x1, plotArea.y1, plotArea.width, plotArea.height);
-		this.ctx.clip();
-
-		var markers = [];
-
-		for (var j = 0; j < plotUnit.dataSeriesIndexes.length; j++){
-
-			var dataSeriesIndex = plotUnit.dataSeriesIndexes[j];
-
-			var dataSeries = this.data[dataSeriesIndex];
-			this.ctx.lineWidth = dataSeries.lineThickness;
-			var dataPoints = dataSeries.dataPoints;
-
-			var seriesId = dataSeries.id;
-			this._eventManager.objectMap[seriesId] = { objectType: "dataSeries", dataSeriesIndex: dataSeriesIndex };
-			var hexColor = intToHexColorString(seriesId);
-			ghostCtx.strokeStyle = hexColor;
-			//ghostCtx.lineWidth = dataSeries.lineThickness;
-			ghostCtx.lineWidth = dataSeries.lineThickness > 0 ? Math.max(dataSeries.lineThickness, 4) : 0;
-
-			var colorSet = dataSeries._colorSet;
-			var color = colorSet[0];
-			this.ctx.strokeStyle = color;
-
-			var isFirstDataPointInPlotArea = true;
-			var i = 0, x, y;
-			var dataPointX; //Used so that when dataPoint.x is a DateTime value, it doesn't get converted to number back and forth.
-
-			//if (!dataSeries._options.markerSize && dataSeries.dataPoints.length < 1000)
-			//    dataSeries.markerSize = 8;
-
-			if (dataPoints.length > 0){
-				//var xy = this.getPixelCoordinatesOnPlotArea(dataPoints[0].x, dataPoints[0].y);
-
-				//dataSeries.noDataPointsInPlotArea = 0
-
-				for (i = 0; i < dataPoints.length; i++){
-
-					dataPointX = dataPoints[i].getTime ? dataPoints[i].x.getTime() : dataPoints[i].x;
-
-					if (dataPointX < plotUnit.axisX.dataInfo.viewPortMin || dataPointX > plotUnit.axisX.dataInfo.viewPortMax)
-						continue;
-
-					//if (!isFinite(dataPoints[i].y))
-					//    continue;
-
-					if (typeof (dataPoints[i].y) !== "number")
-						continue;
-
-					x = (plotUnit.axisX.convertionParameters.reference + plotUnit.axisX.convertionParameters.pixelPerUnit * (dataPointX - plotUnit.axisX.convertionParameters.minimum) + 0.5) << 0;
-					y = (plotUnit.axisY.convertionParameters.reference + plotUnit.axisY.convertionParameters.pixelPerUnit * (dataPoints[i].y - plotUnit.axisY.convertionParameters.minimum) + 0.5) << 0;
-
-					var id = dataSeries.dataPointIds[i];
-					this._eventManager.objectMap[id] = { objectType: "dataPoint", dataSeriesIndex: dataSeriesIndex, dataPointIndex: i, x1: x, y1: y };
-
-
-					//dataSeries.noDataPointsInPlotArea++;
-
-					if (isFirstDataPointInPlotArea){
-						this.ctx.beginPath();
-						this.ctx.moveTo(x, y);
-
-						ghostCtx.beginPath();
-						ghostCtx.moveTo(x, y);
-
-
-						isFirstDataPointInPlotArea = false;
-					} else {
-
-						this.ctx.lineTo(x, y);
-						ghostCtx.lineTo(x, y);
-
-						if (i % 500 === 0){
-							this.ctx.stroke();
-							this.ctx.beginPath();
-							this.ctx.moveTo(x, y);
-
-							ghostCtx.stroke();
-							ghostCtx.beginPath();
-							ghostCtx.moveTo(x, y);
-						}
-					}
-
-					//Render Marker
-					if (dataPoints[i].markerSize > 0 || dataSeries.markerSize > 0){
-
-						var markerProps = dataSeries.getMarkerProperties(i, x, y, this.ctx);
-						markers.push(markerProps);
-
-
-						var markerColor = intToHexColorString(id);
-
-						//window.console.log("index: " + i + "; id: " + id + "; hex: " + markerColor);
-
-						markers.push({
-							x: x, y: y, ctx: ghostCtx,
-							type: markerProps.type,
-							size: markerProps.size,
-							color: markerColor,
-							borderColor: markerColor,
-							borderThickness: markerProps.borderThickness
-						});
-					}
-
-					if (dataPoints[i].indexLabel || dataSeries.indexLabel){
-
-						this._indexLabels.push({
-							chartType: "line",
-							dataPoint: dataPoints[i],
-							dataSeries: dataSeries,
-							point: { x: x, y: y },
-							color: color
-						});
-
-					}
-
-				}
-
-				this.ctx.stroke();
-				ghostCtx.stroke();
-
-				//if (!dataSeries._options.markerSize && dataSeries.noDataPointsInPlotArea > plotArea.width / 16)
-				//    continue;
-
-				//if (dataSeries.markerType && dataSeries.markerSize > 0) {
-				//    for (i = 0; i < dataPoints.length; i++) {
-
-				//        dataPoints[i].getTime ? dataPointX = dataPoints[i].x.getTime() : dataPointX = dataPoints[i].x;
-
-				//        if (dataPointX < this.plotInfo.viewPortXMin || dataPointX > this.plotInfo.viewPortXMax)
-				//            continue;
-
-				//        x = (plotUnit.axisX.convertionParameters.reference + plotUnit.axisX.convertionParameters.pixelPerUnit * (dataPointX - plotUnit.axisX.convertionParameters.minimum) + .5) << 0;
-				//        y = (plotUnit.axisY.convertionParameters.reference + plotUnit.axisY.convertionParameters.pixelPerUnit * (dataPoints[i].y - plotUnit.axisY.convertionParameters.minimum) + .5) << 0;
-
-				//        markers.push({ x: x, y: y, ctx: this.ctx, type: dataSeries.markerType, size: dataSeries.markerSize, color: color, borderColor: dataSeries.markerBorderColor, borderThickness: dataSeries.markerBorderThickness });
-				//    }
-				//}
-			}
-
-		}
-
-
-		RenderHelper.drawMarkers(markers);
-		this.ctx.restore();
-
-		this.ctx.beginPath();
-		ghostCtx.beginPath();
-	};
 
 	Chart.prototype.renderStepLine = function(plotUnit){
 
@@ -4165,620 +3976,6 @@
 		this._eventManager.ghostCtx.restore();
 	};
 
-	Chart.prototype.renderArea = function(plotUnit){
-		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
-
-		if (totalDataSeries <= 0)
-			return;
-
-		var ghostCtx = this._eventManager.ghostCtx;
-
-		var axisXProps = plotUnit.axisX.lineCoordinates;
-		var axisYProps = plotUnit.axisY.lineCoordinates;
-		var markers = [];
-
-		var plotArea = this.getPlotArea();
-		this.ctx.save();
-		ghostCtx.save();
-
-		this.ctx.beginPath();
-		this.ctx.rect(plotArea.x1, plotArea.y1, plotArea.width, plotArea.height);
-		this.ctx.clip();
-
-		ghostCtx.beginPath();
-		ghostCtx.rect(plotArea.x1, plotArea.y1, plotArea.width, plotArea.height);
-		ghostCtx.clip();
-
-		for (var j = 0; j < plotUnit.dataSeriesIndexes.length; j++){
-
-			var dataSeriesIndex = plotUnit.dataSeriesIndexes[j];
-
-			var dataSeries = this.data[dataSeriesIndex];
-
-			var dataPoints = dataSeries.dataPoints;
-
-			var seriesId = dataSeries.id;
-			this._eventManager.objectMap[seriesId] = { objectType: "dataSeries", dataSeriesIndex: dataSeriesIndex };
-
-			var hexColor = intToHexColorString(seriesId);
-			ghostCtx.fillStyle = hexColor;
-			//ghostCtx.lineWidth = dataSeries.lineThickness;
-			//ghostCtx.lineWidth = 20;
-
-			markers = [];
-
-			var isFirstDataPointInPlotArea = true;
-			var i = 0, x, y;
-			var dataPointX; //Used so that when dataPoint.x is a DateTime value, it doesn't get converted to number back and forth.
-
-			var yZeroToPixel = (plotUnit.axisY.convertionParameters.reference + plotUnit.axisY.convertionParameters.pixelPerUnit * (0 - plotUnit.axisY.convertionParameters.minimum) + 0.5) << 0;
-			var baseY;
-
-			var startPoint = null;
-
-			if (dataPoints.length > 0){
-				//this.ctx.strokeStyle = "#4572A7 ";                
-				var color = dataSeries._colorSet[i % dataSeries._colorSet.length];
-				//this.ctx.strokeStyle = "red";
-				this.ctx.fillStyle = color;
-
-				for (; i < dataPoints.length; i++){
-
-					dataPointX = dataPoints[i].x.getTime ? dataPoints[i].x.getTime() : dataPoints[i].x;
-
-					if (dataPointX < plotUnit.axisX.dataInfo.viewPortMin || dataPointX > plotUnit.axisX.dataInfo.viewPortMax){
-						continue;
-					}
-
-					x = (plotUnit.axisX.convertionParameters.reference + plotUnit.axisX.convertionParameters.pixelPerUnit * (dataPointX - plotUnit.axisX.convertionParameters.minimum) + 0.5) << 0;
-					y = (plotUnit.axisY.convertionParameters.reference + plotUnit.axisY.convertionParameters.pixelPerUnit * (dataPoints[i].y - plotUnit.axisY.convertionParameters.minimum) + 0.5) << 0;
-
-					if (typeof (dataPoints[i].y) !== "number")
-						continue;
-
-					if (isFirstDataPointInPlotArea){
-						this.ctx.beginPath();
-						this.ctx.moveTo(x, y);
-						startPoint = { x: x, y: y };
-
-						ghostCtx.beginPath();
-						ghostCtx.moveTo(x, y);
-
-						isFirstDataPointInPlotArea = false;
-					}
-					else {
-
-						this.ctx.lineTo(x, y);
-						ghostCtx.lineTo(x, y);
-
-						if (i % 250 === 0){
-
-							if (plotUnit.axisY.minimum <= 0 && plotUnit.axisY.maximum >= 0){
-								baseY = yZeroToPixel;
-							}
-							else if (plotUnit.axisY.maximum < 0)
-								baseY = axisYProps.y1;
-							else if (plotUnit.axisY.minimum > 0)
-								baseY = axisXProps.y2;
-
-							this.ctx.lineTo(x, baseY);
-							this.ctx.lineTo(startPoint.x, baseY);
-							this.ctx.closePath();
-							this.ctx.fill();
-							this.ctx.beginPath();
-							this.ctx.moveTo(x, y);
-
-
-							ghostCtx.lineTo(x, baseY);
-							ghostCtx.lineTo(startPoint.x, baseY);
-							ghostCtx.closePath();
-							ghostCtx.fill();
-							ghostCtx.beginPath();
-							ghostCtx.moveTo(x, y);
-
-							startPoint = { x: x, y: y };
-						}
-					}
-
-
-					var id = dataSeries.dataPointIds[i];
-					this._eventManager.objectMap[id] = { objectType: "dataPoint", dataSeriesIndex: dataSeriesIndex, dataPointIndex: i, x1: x, y1: y };
-
-					//Render Marker
-					if (dataPoints[i].markerSize !== 0){
-						if (dataPoints[i].markerSize > 0 || dataSeries.markerSize > 0){
-							var markerProps = dataSeries.getMarkerProperties(i, x, y, this.ctx);
-							markers.push(markerProps);
-
-
-							var markerColor = intToHexColorString(id);
-
-							markers.push({
-								x: x, y: y, ctx: ghostCtx,
-								type: markerProps.type,
-								size: markerProps.size,
-								color: markerColor,
-								borderColor: markerColor,
-								borderThickness: markerProps.borderThickness
-							});
-						}
-					}
-
-					if (dataPoints[i].indexLabel || dataSeries.indexLabel){
-
-						this._indexLabels.push({
-							chartType: "area",
-							dataPoint: dataPoints[i],
-							dataSeries: dataSeries,
-							point: { x: x, y: y },
-							color: color
-						});
-
-					}
-				}
-
-				if (plotUnit.axisY.minimum <= 0 && plotUnit.axisY.maximum >= 0){
-					baseY = yZeroToPixel;
-				}
-				else if (plotUnit.axisY.maximum < 0)
-					baseY = axisYProps.y1;
-				else if (plotUnit.axisY.minimum > 0)
-					baseY = axisXProps.y2;
-
-				this.ctx.lineTo(x, baseY);
-				this.ctx.lineTo(startPoint.x, baseY);
-				this.ctx.closePath();
-				this.ctx.fill();
-
-
-				ghostCtx.lineTo(x, baseY);
-				ghostCtx.lineTo(startPoint.x, baseY);
-				ghostCtx.closePath();
-				ghostCtx.fill();
-
-				startPoint = { x: x, y: y };
-				RenderHelper.drawMarkers(markers);
-			}
-		}
-
-		this.ctx.restore();
-		this._eventManager.ghostCtx.restore();
-	};
-
-	Chart.prototype.renderSplineArea = function(plotUnit){
-		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
-
-		if (totalDataSeries <= 0)
-			return;
-
-		var ghostCtx = this._eventManager.ghostCtx;
-
-		var axisXProps = plotUnit.axisX.lineCoordinates;
-		var axisYProps = plotUnit.axisY.lineCoordinates;
-		var markers = [];
-
-		var plotArea = this.getPlotArea();
-		this.ctx.save();
-		ghostCtx.save();
-
-		this.ctx.beginPath();
-		this.ctx.rect(plotArea.x1, plotArea.y1, plotArea.width, plotArea.height);
-		this.ctx.clip();
-
-		ghostCtx.beginPath();
-		ghostCtx.rect(plotArea.x1, plotArea.y1, plotArea.width, plotArea.height);
-		ghostCtx.clip();
-
-		for (var j = 0; j < plotUnit.dataSeriesIndexes.length; j++){
-
-			var dataSeriesIndex = plotUnit.dataSeriesIndexes[j];
-
-			var dataSeries = this.data[dataSeriesIndex];
-
-			var dataPoints = dataSeries.dataPoints;
-
-			var seriesId = dataSeries.id;
-			this._eventManager.objectMap[seriesId] = { objectType: "dataSeries", dataSeriesIndex: dataSeriesIndex };
-
-			var hexColor = intToHexColorString(seriesId);
-			ghostCtx.fillStyle = hexColor;
-			//ghostCtx.lineWidth = dataSeries.lineThickness;
-			//ghostCtx.lineWidth = 20;
-
-			markers = [];
-
-			//var isFirstDataPointInPlotArea = true;
-			var i = 0, x, y;
-			var dataPointX; //Used so that when dataPoint.x is a DateTime value, it doesn't get converted to number back and forth.
-
-			var yZeroToPixel = (plotUnit.axisY.convertionParameters.reference + plotUnit.axisY.convertionParameters.pixelPerUnit * (0 - plotUnit.axisY.convertionParameters.minimum) + 0.5) << 0;
-			var baseY;
-
-			var startPoint = null;
-
-			var pixels = [];
-
-			if (dataPoints.length > 0){
-				//this.ctx.strokeStyle = "#4572A7 ";
-				var color = dataSeries._colorSet[i % dataSeries._colorSet.length];
-				//this.ctx.strokeStyle = "red";
-				this.ctx.fillStyle = color;
-
-				for (; i < dataPoints.length; i++){
-
-					dataPointX = dataPoints[i].x.getTime ? dataPoints[i].x.getTime() : dataPoints[i].x;
-
-					if (dataPointX < plotUnit.axisX.dataInfo.viewPortMin || dataPointX > plotUnit.axisX.dataInfo.viewPortMax){
-						continue;
-					}
-
-					x = (plotUnit.axisX.convertionParameters.reference + plotUnit.axisX.convertionParameters.pixelPerUnit * (dataPointX - plotUnit.axisX.convertionParameters.minimum) + 0.5) << 0;
-					y = (plotUnit.axisY.convertionParameters.reference + plotUnit.axisY.convertionParameters.pixelPerUnit * (dataPoints[i].y - plotUnit.axisY.convertionParameters.minimum) + 0.5) << 0;
-
-					if (typeof (dataPoints[i].y) !== "number")
-						continue;
-
-					//if (isFirstDataPointInPlotArea) {
-					//    this.ctx.beginPath();
-					//    this.ctx.moveTo(x, y);
-					//    startPoint = { x: x, y: y };
-
-					//    ghostCtx.beginPath();
-					//    ghostCtx.moveTo(x, y);
-
-					//    isFirstDataPointInPlotArea = false;
-					//}
-					//else {
-
-					//    this.ctx.lineTo(x, y);
-					//    ghostCtx.lineTo(x, y);
-
-					//    if (i % 250 == 0) {
-
-					//        if (plotUnit.axisY.minimum <= 0 && plotUnit.axisY.maximum >= 0) {
-					//            baseY = yZeroToPixel;
-					//        }
-					//        else if (plotUnit.axisY.maximum < 0)
-					//            baseY = axisYProps.y1;
-					//        else if (plotUnit.axisY.minimum > 0)
-					//            baseY = axisXProps.y2;
-
-					//        this.ctx.lineTo(x, baseY);
-					//        this.ctx.lineTo(startPoint.x, baseY);
-					//        this.ctx.closePath();
-					//        this.ctx.fill();
-					//        this.ctx.beginPath();
-					//        this.ctx.moveTo(x, y);
-
-
-					//        ghostCtx.lineTo(x, baseY);
-					//        ghostCtx.lineTo(startPoint.x, baseY);
-					//        ghostCtx.closePath();
-					//        ghostCtx.fill();
-					//        ghostCtx.beginPath();
-					//        ghostCtx.moveTo(x, y);
-
-					//        startPoint = { x: x, y: y };
-					//    }
-					//}
-
-
-					var id = dataSeries.dataPointIds[i];
-					this._eventManager.objectMap[id] = { objectType: "dataPoint", dataSeriesIndex: dataSeriesIndex, dataPointIndex: i, x1: x, y1: y };
-
-					pixels[pixels.length] = { x: x, y: y };
-
-					//Render Marker
-					if (dataPoints[i].markerSize !== 0){
-						if (dataPoints[i].markerSize > 0 || dataSeries.markerSize > 0){
-							var markerProps = dataSeries.getMarkerProperties(i, x, y, this.ctx);
-							markers.push(markerProps);
-
-
-							var markerColor = intToHexColorString(id);
-
-							markers.push({
-								x: x, y: y, ctx: ghostCtx,
-								type: markerProps.type,
-								size: markerProps.size,
-								color: markerColor,
-								borderColor: markerColor,
-								borderThickness: markerProps.borderThickness
-							});
-						}
-					}
-
-
-					//Render Index Labels
-					if (dataPoints[i].indexLabel || dataSeries.indexLabel){
-
-						this._indexLabels.push({
-							chartType: "splineArea",
-							dataPoint: dataPoints[i],
-							dataSeries: dataSeries,
-							point: { x: x, y: y },
-							color: color
-						});
-
-					}
-				}
-
-				var bp = getBezierPoints(pixels, 2);
-
-				if (bp.length > 0){
-					this.ctx.beginPath();
-					ghostCtx.beginPath();
-
-					this.ctx.moveTo(bp[0].x, bp[0].y);
-					ghostCtx.moveTo(bp[0].x, bp[0].y);
-
-					for (i = 0; i < bp.length - 3; i += 3){
-
-						this.ctx.bezierCurveTo(bp[i + 1].x, bp[i + 1].y, bp[i + 2].x, bp[i + 2].y, bp[i + 3].x, bp[i + 3].y);
-						ghostCtx.bezierCurveTo(bp[i + 1].x, bp[i + 1].y, bp[i + 2].x, bp[i + 2].y, bp[i + 3].x, bp[i + 3].y);
-
-
-						//if (i > 0 && i % 1503 == 0) {
-						//    this.ctx.stroke();
-						//    ghostCtx.stroke();
-
-						//    this.ctx.beginPath();
-						//    ghostCtx.beginPath();
-
-						//    this.ctx.moveTo(bp[i].x, bp[i].y);
-						//    ghostCtx.moveTo(bp[i].x, bp[i].y);
-						//}
-					}
-
-					if (plotUnit.axisY.minimum <= 0 && plotUnit.axisY.maximum >= 0){
-						baseY = yZeroToPixel;
-					}
-					else if (plotUnit.axisY.maximum < 0)
-						baseY = axisYProps.y1;
-					else if (plotUnit.axisY.minimum > 0)
-						baseY = axisXProps.y2;
-
-					startPoint = { x: bp[0].x, y: bp[0].y };
-
-					this.ctx.lineTo(bp[bp.length - 1].x, baseY);
-					this.ctx.lineTo(startPoint.x, baseY);
-					this.ctx.closePath();
-					this.ctx.fill();
-
-					ghostCtx.lineTo(bp[bp.length - 1].x, baseY);
-					ghostCtx.lineTo(startPoint.x, baseY);
-					ghostCtx.closePath();
-					ghostCtx.fill();
-				}
-
-
-				RenderHelper.drawMarkers(markers);
-			}
-		}
-
-		this.ctx.restore();
-		this._eventManager.ghostCtx.restore();
-	};
-
-	Chart.prototype.renderStackedArea = function(plotUnit){
-		var point;
-		var id;
-		var dataPoints;
-		var dataSeries;
-		var dataSeriesIndex;
-		var totalDataSeries = plotUnit.dataSeriesIndexes.length;
-
-		if (totalDataSeries <= 0)
-			return;
-
-		var color = null;
-		var markers = [];
-
-		var plotArea = this.getPlotArea();
-
-		var offsetY = [];
-
-		var allXValues = [];
-		//var offsetNegativeY = [];
-
-		var i = 0, x, y;
-		var dataPointX; //Used so that when dataPoint.x is a DateTime value, it doesn't get converted to number everytime it is accessed.
-
-		//var yZeroToPixel = (axisYProps.y2 - axisYProps.height / rangeY * Math.abs(0 - plotUnit.axisY.minimum) + 0.5) << 0;
-		var yZeroToPixel = (plotUnit.axisY.convertionParameters.reference + plotUnit.axisY.convertionParameters.pixelPerUnit * (0 - plotUnit.axisY.convertionParameters.minimum)) << 0;
-
-		// var xMinDiff = plotUnit.axisX.dataInfo.minDiff;
-
-		var ghostCtx = this._eventManager.ghostCtx;
-		ghostCtx.beginPath();
-
-		this.ctx.save();
-		ghostCtx.save();
-
-		this.ctx.beginPath();
-		this.ctx.rect(plotArea.x1, plotArea.y1, plotArea.width, plotArea.height);
-		this.ctx.clip();
-
-		ghostCtx.beginPath();
-		ghostCtx.rect(plotArea.x1, plotArea.y1, plotArea.width, plotArea.height);
-		ghostCtx.clip();
-
-		var xValuePresent = [];
-		for (var j = 0; j < plotUnit.dataSeriesIndexes.length; j++){
-
-			dataSeriesIndex = plotUnit.dataSeriesIndexes[j];
-			dataSeries = this.data[dataSeriesIndex];
-			dataPoints = dataSeries.dataPoints;
-			var xValue;
-
-			dataSeries.dataPointIndexes = [];
-
-			for (i = 0; i < dataPoints.length; i++){
-				xValue = dataPoints[i].x.getTime ? dataPoints[i].x.getTime() : dataPoints[i].x;
-				dataSeries.dataPointIndexes[xValue] = i;
-
-				if (!xValuePresent[xValue]){
-					allXValues.push(xValue);
-					xValuePresent[xValue] = true;
-				}
-			}
-
-			allXValues.sort(compareNumbers);
-		}
-
-		for (j = 0; j < plotUnit.dataSeriesIndexes.length; j++){
-
-			dataSeriesIndex = plotUnit.dataSeriesIndexes[j];
-
-			dataSeries = this.data[dataSeriesIndex];
-			dataPoints = dataSeries.dataPoints;
-			var isFirstDataPointInPlotArea = true;
-
-			var currentBaseValues = [];
-
-
-			var seriesId = dataSeries.id;
-			this._eventManager.objectMap[seriesId] = { objectType: "dataSeries", dataSeriesIndex: dataSeriesIndex };
-			var hexColor = intToHexColorString(seriesId);
-			ghostCtx.fillStyle = hexColor;
-
-
-			if (allXValues.length > 0){
-
-				color = dataSeries._colorSet[0];
-				//this.ctx.strokeStyle = "red";
-				this.ctx.fillStyle = color;
-
-				for (i = 0; i < allXValues.length; i++){
-
-					dataPointX = allXValues[i];
-					var dataPoint = null;
-
-					if (dataSeries.dataPointIndexes[dataPointX] >= 0)
-						dataPoint = dataPoints[dataSeries.dataPointIndexes[dataPointX]];
-					else
-						dataPoint = { x: dataPointX, y: 0 };
-
-					if (dataPointX < plotUnit.axisX.dataInfo.viewPortMin || dataPointX > plotUnit.axisX.dataInfo.viewPortMax){
-						continue;
-					}
-
-					if (typeof (dataPoint.y) !== "number")
-						continue;
-
-					x = (plotUnit.axisX.convertionParameters.reference + plotUnit.axisX.convertionParameters.pixelPerUnit * (dataPointX - plotUnit.axisX.convertionParameters.minimum) + 0.5) << 0;
-					y = (plotUnit.axisY.convertionParameters.reference + plotUnit.axisY.convertionParameters.pixelPerUnit * (dataPoint.y - plotUnit.axisY.convertionParameters.minimum) + 0.5) << 0;
-
-					var offset = offsetY[dataPointX] ? offsetY[dataPointX] : 0;
-
-					y = y - offset;
-					currentBaseValues.push({ x: x, y: yZeroToPixel - offset });
-					offsetY[dataPointX] = yZeroToPixel - y;
-
-					if (isFirstDataPointInPlotArea){
-						this.ctx.beginPath();
-						this.ctx.moveTo(x, y);
-
-						ghostCtx.beginPath();
-						ghostCtx.moveTo(x, y);
-
-						isFirstDataPointInPlotArea = false;
-					}
-					else {
-
-						this.ctx.lineTo(x, y);
-						ghostCtx.lineTo(x, y);
-
-						if (i % 250 === 0){
-
-							while (currentBaseValues.length > 0){
-								point = currentBaseValues.pop();
-								this.ctx.lineTo(point.x, point.y);
-								ghostCtx.lineTo(point.x, point.y);
-
-							}
-
-							this.ctx.closePath();
-							this.ctx.fill();
-
-							this.ctx.beginPath();
-							this.ctx.moveTo(x, y);
-
-							ghostCtx.closePath();
-							ghostCtx.fill();
-
-							ghostCtx.beginPath();
-							ghostCtx.moveTo(x, y);
-
-							currentBaseValues.push({ x: x, y: yZeroToPixel - offset });
-						}
-
-					}
-
-					if (dataSeries.dataPointIndexes[dataPointX] >= 0){
-						id = dataSeries.dataPointIds[dataSeries.dataPointIndexes[dataPointX]];
-						this._eventManager.objectMap[id] = { objectType: "dataPoint", dataSeriesIndex: dataSeriesIndex, dataPointIndex: dataSeries.dataPointIndexes[dataPointX], x1: x, y1: y };
-					}
-
-					//Render Marker
-					if (dataSeries.dataPointIndexes[dataPointX] >= 0 && dataPoint.markerSize !== 0){
-						if (dataPoint.markerSize > 0 || dataSeries.markerSize > 0){
-
-							var markerProps = dataSeries.getMarkerProperties(i, x, y, this.ctx);
-							markers.push(markerProps);
-
-
-							var markerColor = intToHexColorString(id);
-							markers.push({
-								x: x, y: y, ctx: ghostCtx,
-								type: markerProps.type,
-								size: markerProps.size,
-								color: markerColor,
-								borderColor: markerColor,
-								borderThickness: markerProps.borderThickness
-							});
-						}
-					}
-
-					if (dataPoint.indexLabel || dataSeries.indexLabel){
-
-						this._indexLabels.push({
-							chartType: "stackedArea",
-							dataPoint: dataPoint,
-							dataSeries: dataSeries,
-							point: { x: x, y: y },
-							color: color
-						});
-
-					}
-				}
-
-				while (currentBaseValues.length > 0){
-					point = currentBaseValues.pop();
-					this.ctx.lineTo(point.x, point.y);
-					ghostCtx.lineTo(point.x, point.y);
-				}
-
-				this.ctx.closePath();
-				this.ctx.fill();
-				this.ctx.beginPath();
-				this.ctx.moveTo(x, y);
-
-				ghostCtx.closePath();
-				ghostCtx.fill();
-				ghostCtx.beginPath();
-				ghostCtx.moveTo(x, y);
-			}
-
-			delete (dataSeries.dataPointIndexes);
-		}
-
-		RenderHelper.drawMarkers(markers);
-
-
-		this.ctx.restore();
-		ghostCtx.restore();
-	};
 
 	Chart.prototype.renderStackedArea100 = function(plotUnit){
 		var id;
@@ -5538,7 +4735,7 @@
 				}
 
 
-				// loop from 1st to last quadrent 
+				// loop from 1st to last quadrent
 
 				for (i = 0; i < noDataPoints; i++){
 					if (labelLocationAngles[i] < Math.PI / 2){
@@ -5572,7 +4769,7 @@
 					}
 				}
 
-				// loop from last to first quadrent 
+				// loop from last to first quadrent
 				for (i = noDataPoints; i >= 0; i--){
 					if (labelLocationAngles[i] < Math.PI && labelLocationAngles[i] >= Math.PI / 2){
 						if (y1[i] < y2[i + 1]){
@@ -6723,7 +5920,7 @@
 		}
 	};
 
-	//Finds dataPoint with the given x value. If findClosest is set, finds dataPoint with closest x value. 
+	//Finds dataPoint with the given x value. If findClosest is set, finds dataPoint with closest x value.
 	//Returns searchResult object if found, else returns null
 	DataSeries.prototype.findDataPointByX = function(x, findClosest){
 
@@ -6853,14 +6050,14 @@
 
 		this.lineCoordinates = { x1: null, y1: null, x2: null, y2: null, width: null };//{x1:, y1:, x2:, y2:, width:}
 		//
-			this.labelAngle = ((this.labelAngle % 360) + 360) % 360;
+		this.labelAngle = ((this.labelAngle % 360) + 360) % 360;
 
-			if (this.labelAngle > 90 && this.labelAngle <= 270)
-				this.labelAngle -= 180;
-			else if (this.labelAngle > 180 && this.labelAngle <= 270)
-				this.labelAngle -= 180;
-			else if (this.labelAngle > 270 && this.labelAngle <= 360)
-				this.labelAngle -= 360;
+		if (this.labelAngle > 90 && this.labelAngle <= 270)
+			this.labelAngle -= 180;
+		else if (this.labelAngle > 180 && this.labelAngle <= 270)
+			this.labelAngle -= 180;
+		else if (this.labelAngle > 270 && this.labelAngle <= 360)
+			this.labelAngle -= 360;
 
 		this._titleTextBlock = null;
 		this._absoluteMinimum = null;// Used to determine boundaries while Zooming/Panning
@@ -9037,6 +8234,25 @@
 		},
 		addCultureInfo: function(name, cultureInfo){
 			cultures[name] = cultureInfo;
+		},
+
+		// common helpers
+		intToHexColorString: intToHexColorString,
+		RenderHelper: RenderHelper,
+		getBezierPoints: getBezierPoints,
+
+		registerChart: function(type, renderer, processor){
+			// public api for registering a chart, accepts type, renderer and processor functions.
+			var renderName = type,
+				processorName;
+
+			renderName = renderName[0].toUpperCase() + renderName.slice(1);
+			renderName = 'render' + renderName;
+			supportedChartTypes[type] = renderName;
+			processorName = '_process' + renderName;
+
+			Chart.prototype[renderName] = renderer;
+			processor && (Chart.prototype[processorName] = processor);
 		}
 	};
 

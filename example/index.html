@@ -20,29 +20,19 @@
 <script src="../canvasjs.js"></script>
 <script>
 	(function(){
-		var vars = [];
+
+		var data = [];
+
 		var c = new CanvasJS.Chart('one', {
 			data: [{
 				name: 'Base',
 				type: 'splineArea',
 				markerType: 'none',
-				color: 'rgba(0,0,0,.7)',
-				dataPoints: [{
-					x: 10,
-					y: 20
-				}, {
-					x: 40,
-					y: 25
-				},{
-					x: 80,
-					y: 15
-				}]
+				color: 'rgba(0,0,0,.9);rgba(0,0,0,.1);black',
+				dataPoints: data
 			}]
 		});
 
-		c.render();
-
-		var data = [];
 
 		var c2 = new CanvasJS.Chart('two', {
 			theme: 'theme3',
@@ -52,30 +42,32 @@
 			},
 			data: [{
 				name: 'Base',
-				type: 'line',
+				type: 'splineArea',
 				markerType: 'none',
-//				color: 'rgba(0,0,0,.7)',
-				dataPoints: data,
-
+				color: 'rgba(255,255,255,.9);rgba(0,0,0,.5);rgb(255,255,255)',
+				dataPoints: data
 			}]
 		});
 
 		var last;
 		setInterval(function(){
 
-			last = last || Math.random() * 5 + 5,
+			last = last || Math.random() * 2 + 5,
 			data.push({
-				y: last + Math.random() * 5 + 5,
+				y: last + Math.random() * 0.5,
 				x: new Date()
 			});
 
-			data.length > 500 && data.shift();
+			data.length > 100 && data.shift();
 
 			c2.render();
+			c.render();
 		}, 100);
 
 
 		function getGlobals(){
+			var vars = [];
+
 			var ignore = ['window','document','InstallTrigger','console','CanvasJS','navigator','getInterface','external','sidebar','top','location']
 
 			for (var key in this){
