@@ -1,0 +1,33 @@
+# CanvasJS图表库-中文文档
+
+######第一次翻译文档，有点虚，大牛勿喷~~~对canvasjs图表库进行翻译(canvasjs.com)，试过一些图表库，感觉这个在移动端的表现还挺不错的。开源项目[https://github.com/ycjcl868/canvasjs_cn](https://github.com/ycjcl868/canvasjs_cn)，大家一起来翻译吧！
+=======
+####CanvasJS中文文档
+* [介绍](1_introduction/README.md)
+    * [如何安装](1_introduction/1_installation.md)
+    * [特点](1_introduction/2_features.md) 
+    * [版本更新日志](1_introduction/3_roadmap.md) 
+    * [性能](1_introduction/4_performance.md) 
+    * [浏览器要求](1_introduction/5_requirements.md) 
+    * [技术支持](1_introduction/6_support.md) 
+* [快速入门](2_getting/README.md)
+    * [更新图表数据](2_getting/1_update.md) 
+    * [图表元素](2_getting/2_element.md) 
+    * [标题](2_getting/3_title.md) 
+    * [使用数据](2_getting/4_workdata.md) 
+    * [组合图表](2_getting/5_multi.md) 
+* [图表类型](3_types/README.md)
+    * [柱状图](3_types/10. Web.md) 
+    * [...](3_types/10. Web.md) 
+* [参数配置](4_options/README.md)
+    * [交互效果](4_options/11. Caching 缓存.md) 
+    * [](4_options/11. Caching 缓存.md) 
+* [方法](5_methods/README.md)
+    * [数据格式](5_methods/15. Spring Framework.md)
+    * [](5_methods/17. CAS.md) 
+* [demo案例](6_samples/README.md)
+    * [创建动态图表](6_samples/18. Command Line Hasher.md) 
+    * [](6_samples/18. Command Line Hasher.md) 
+* [多种图表整合](7_integration/README.md)
+    * [jQuery](7_integration/19. Terminology 术语.md) 
+        * [图表种类](7_integration/19. Terminology 术语.md) 
